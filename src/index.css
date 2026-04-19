@@ -1,0 +1,12 @@
+@import "tailwindcss";
+
+@theme {
+  --color-nova-blue: #01142F; /* Deep Navy from their site */
+  --color-nova-yellow: #DFFF5F; /* Neon Lime / Yellow from their site */
+  --color-nova-pink: #F772BA; /* Pink accent */
+  --color-nova-cyan: #37BEEE; /* Cyan accent */
+  --color-nova-gray: #F5F7FA;
+  --color-nova-ink: #1A1A1A;
+  --font-sans: 'Helvetica Neue', Arial, sans-serif;
+}
+
