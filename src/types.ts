@@ -11,9 +11,16 @@ export type Question = {
   answers: Answer[];
 };
 
+export type Skill = {
+  name: string;
+  icon: string;
+};
+
 export type Entrepreneur = {
   id: EntrepreneurId;
   name: string;
   image: string;
   description: string;
+  skills: Skill[];
+  futurePrediction: string;
 };
