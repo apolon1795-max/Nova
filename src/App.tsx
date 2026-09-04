@@ -296,7 +296,7 @@ function ParentShareForm({ person, scores }: { person: Entrepreneur; scores: Rec
       setCopied(true);
       window.setTimeout(() => setCopied(false), 3_000);
     } catch {
-      setShareError('Не получилось скопировать автоматически. Сделай скрин карточки ниже.');
+      setShareError('Не получилось скопировать автоматически. Сделай скрин основной карточки выше.');
     }
   };
 
@@ -317,34 +317,21 @@ function ParentShareForm({ person, scores }: { person: Entrepreneur; scores: Rec
       <section className="share-card share-card--success" aria-labelledby="share-success-title">
         <div className="share-success-icon"><CheckCircle2 size={32} aria-hidden="true" /></div>
         <p className="section-kicker">Результат сохранён</p>
-        <h2 id="share-success-title">Теперь покажи его маме или папе</h2>
-        <p>Сделай скрин карточки или скопируй готовый текст — и отправь его там, где вы обычно общаетесь.</p>
-
-        <div className="result-share-preview" aria-label={`Карточка результата: ${person.name}, ${person.archetype}`}>
-          <div className="result-share-preview__brand">НОВАТОРИЯ</div>
-          <div className="result-share-preview__label">Мой результат</div>
-          <strong>{person.name}</strong>
-          <span className="result-share-preview__archetype">{person.archetype}</span>
-          <div className="result-share-preview__skills">
-            <small>Мои сильные стороны</small>
-            {person.skills.map((skill) => <span key={skill.name}>{skill.name}</span>)}
-          </div>
-          <p>Я прошёл тест «На какого предпринимателя ты похож»</p>
-          <b>НОВАТОРИЯ18.РФ</b>
-        </div>
+        <h2 id="share-success-title">Покажи свой результат маме или папе</h2>
+        <p>Сделай скрин основной карточки «Твой результат» выше или отправь полный текст с описанием и сильными сторонами.</p>
 
         <div className="share-actions">
           <button type="button" className="primary-button" onClick={copyResult}>
             {copied ? <Check size={20} aria-hidden="true" /> : <ClipboardCopy size={20} aria-hidden="true" />}
-            {copied ? 'Текст скопирован' : 'Скопировать текст'}
+            {copied ? 'Результат скопирован' : 'Скопировать результат'}
           </button>
           <button type="button" className="secondary-button" onClick={downloadCard} disabled={downloading}>
             <Download size={20} aria-hidden="true" />
-            {downloading ? 'Готовим карточку…' : 'Скачать карточку'}
+            {downloading ? 'Готовим изображение…' : 'Скачать результат'}
           </button>
         </div>
         {shareError ? <div className="form-error" role="alert">{shareError}</div> : null}
-        <p className="share-footnote">Карточку можно заскринить прямо с экрана — на телефоне она специально помещается целиком.</p>
+        <p className="share-footnote">В копируемом тексте и скачанном изображении сохраняется полное описание твоего результата.</p>
       </section>
     );
   }
@@ -354,7 +341,7 @@ function ParentShareForm({ person, scores }: { person: Entrepreneur; scores: Rec
       <div className="share-card__intro">
         <p className="section-kicker">Последний шаг</p>
         <h2 id="share-title">Поделись результатами теста с родителями</h2>
-        <p>Введи телефон мамы или папы. Мы сохраним твой результат и покажем готовую карточку для скриншота.</p>
+        <p>Введи телефон мамы или папы. Мы сохраним твой результат, а ты сможешь скопировать его или скачать как изображение.</p>
       </div>
 
       <form onSubmit={handleSubmit} noValidate>

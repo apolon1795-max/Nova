@@ -236,6 +236,8 @@ export function buildParentShareText(person: Entrepreneur): string {
     'Привет! Я прошёл тест Новатории «На какого предпринимателя ты похож».',
     '',
     `Мой результат — ${person.name}: ${person.archetype.toLowerCase()}.`,
+    person.description,
+    '',
     `Мои сильные стороны: ${skills}.`,
     '',
     'Хочу показать тебе результат и узнать про бесплатное пробное занятие:',
@@ -261,14 +263,11 @@ function drawRoundedRect(
   context.closePath();
 }
 
-function drawCenteredText(
+function wrapCanvasText(
   context: CanvasRenderingContext2D,
   text: string,
-  centerX: number,
-  y: number,
   maxWidth: number,
-  lineHeight: number,
-): number {
+): string[] {
   const words = text.split(/\s+/);
   const lines: string[] = [];
   let line = '';
@@ -284,10 +283,55 @@ function drawCenteredText(
   }
   if (line) lines.push(line);
 
+  return lines;
+}
+
+function drawWrappedText(
+  context: CanvasRenderingContext2D,
+  text: string,
+  x: number,
+  y: number,
+  maxWidth: number,
+  lineHeight: number,
+): number {
+  const lines = wrapCanvasText(context, text, maxWidth);
+
   for (const [index, value] of lines.entries()) {
-    context.fillText(value, centerX, y + index * lineHeight);
+    context.fillText(value, x, y + index * lineHeight);
   }
   return y + lines.length * lineHeight;
+}
+
+function loadCanvasImage(source: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.decoding = 'async';
+    image.onload = () => resolve(image);
+    image.onerror = () => reject(new Error('Не удалось загрузить портрет'));
+    image.src = new URL(source, window.location.href).href;
+  });
+}
+
+function drawCoverImage(
+  context: CanvasRenderingContext2D,
+  image: HTMLImageElement,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  radius: number,
+): void {
+  const scale = Math.max(width / image.naturalWidth, height / image.naturalHeight);
+  const renderedWidth = image.naturalWidth * scale;
+  const renderedHeight = image.naturalHeight * scale;
+  const offsetX = x + (width - renderedWidth) / 2;
+  const offsetY = y + (height - renderedHeight) / 2;
+
+  context.save();
+  drawRoundedRect(context, x, y, width, height, radius);
+  context.clip();
+  context.drawImage(image, offsetX, offsetY, renderedWidth, renderedHeight);
+  context.restore();
 }
 
 export async function downloadParentShareCard(person: Entrepreneur): Promise<void> {
@@ -308,7 +352,7 @@ export async function downloadParentShareCard(person: Entrepreneur): Promise<voi
 
   context.fillStyle = '#d2ff5f';
   context.beginPath();
-  context.arc(900, 180, 155, 0, Math.PI * 2);
+  context.arc(925, 126, 118, 0, Math.PI * 2);
   context.fill();
 
   context.fillStyle = '#37beee';
@@ -319,49 +363,94 @@ export async function downloadParentShareCard(person: Entrepreneur): Promise<voi
   context.textAlign = 'center';
   context.textBaseline = 'top';
   context.fillStyle = '#ffffff';
-  context.font = '700 52px "Anonymous Pro", monospace';
-  context.fillText('НОВАТОРИЯ', 540, 110);
+  context.font = '700 46px "Anonymous Pro", monospace';
+  context.fillText('НОВАТОРИЯ', 540, 102);
 
   context.fillStyle = '#d2ff5f';
-  context.font = '700 30px "Anonymous Pro", monospace';
-  context.fillText('МОЙ РЕЗУЛЬТАТ', 540, 245);
+  context.font = '700 26px "Anonymous Pro", monospace';
+  context.fillText('ТВОЙ РЕЗУЛЬТАТ', 540, 178);
+
+  const portraitX = 96;
+  const portraitY = 250;
+  const portraitWidth = 340;
+  const portraitHeight = 470;
+  context.fillStyle = '#ffffff';
+  drawRoundedRect(context, portraitX, portraitY, portraitWidth, portraitHeight, 36);
+  context.fill();
+
+  try {
+    const portrait = await loadCanvasImage(person.image);
+    drawCoverImage(context, portrait, portraitX + 14, portraitY + 14, portraitWidth - 28, portraitHeight - 28, 25);
+  } catch {
+    context.fillStyle = '#ffffe6';
+    drawRoundedRect(context, portraitX + 14, portraitY + 14, portraitWidth - 28, portraitHeight - 28, 25);
+    context.fill();
+    context.fillStyle = '#008282';
+    context.font = '700 72px "Anonymous Pro", monospace';
+    context.fillText(person.name.split(' ').map((part) => part[0]).join('').slice(0, 2), portraitX + portraitWidth / 2, portraitY + 185);
+  }
+
+  const copyX = 484;
+  const copyWidth = 458;
+  context.textAlign = 'left';
+  context.fillStyle = 'rgba(255,255,255,0.78)';
+  context.font = '700 21px "Geologica", sans-serif';
+  context.fillText('БОЛЬШЕ ВСЕГО ТЫ ПОХОЖ НА', copyX, 254);
 
   context.fillStyle = '#ffffff';
-  context.font = '700 74px "Anonymous Pro", monospace';
-  const titleBottom = drawCenteredText(context, person.name, 540, 315, 810, 76);
+  context.font = '700 54px "Anonymous Pro", monospace';
+  const titleBottom = drawWrappedText(context, person.nameAccusative, copyX, 298, copyWidth, 57);
 
-  context.fillStyle = '#004f52';
-  drawRoundedRect(context, 190, titleBottom + 34, 700, 76, 38);
+  const archetypeY = titleBottom + 18;
+  context.font = '700 22px "Anonymous Pro", monospace';
+  const archetypeWidth = Math.min(copyWidth, context.measureText(person.archetype.toUpperCase()).width + 44);
+  context.fillStyle = 'rgba(255,255,255,0.12)';
+  drawRoundedRect(context, copyX, archetypeY, archetypeWidth, 56, 28);
   context.fill();
   context.fillStyle = '#ffffff';
-  context.font = '700 29px "Anonymous Pro", monospace';
-  context.fillText(person.archetype.toUpperCase(), 540, titleBottom + 56);
+  context.fillText(person.archetype.toUpperCase(), copyX + 22, archetypeY + 17);
 
+  context.fillStyle = 'rgba(255,255,255,0.94)';
+  context.font = '400 27px "Geologica", sans-serif';
+  const descriptionBottom = drawWrappedText(context, person.description, copyX, archetypeY + 88, copyWidth, 41);
+
+  context.fillStyle = 'rgba(255,255,255,0.7)';
+  context.font = '400 18px "Geologica", sans-serif';
+  drawWrappedText(context, 'Это игровая подсказка, а не оценка личности.', copyX, descriptionBottom + 16, copyWidth, 26);
+
+  context.textAlign = 'left';
   context.fillStyle = '#d2ff5f';
-  context.font = '700 30px "Anonymous Pro", monospace';
-  context.fillText('МОИ СИЛЬНЫЕ СТОРОНЫ', 540, titleBottom + 180);
+  context.font = '700 27px "Anonymous Pro", monospace';
+  context.fillText('ТВОИ СИЛЬНЫЕ СТОРОНЫ', 96, 850);
 
   const skillColors = ['#d2ff5f', '#37beee', '#ff92cd'];
   person.skills.forEach((skill, index) => {
-    const skillY = titleBottom + 250 + index * 106;
+    const skillX = 96 + index * 296;
     context.fillStyle = skillColors[index] || '#ffffff';
-    drawRoundedRect(context, 180, skillY, 720, 78, 24);
+    drawRoundedRect(context, skillX, 896, 270, 98, 24);
     context.fill();
     context.fillStyle = '#004f52';
-    context.font = '700 34px "Anonymous Pro", monospace';
-    context.fillText(skill.name, 540, skillY + 22);
+    context.font = '700 25px "Anonymous Pro", monospace';
+    context.textAlign = 'center';
+    const lines = wrapCanvasText(context, skill.name, 224);
+    const skillTextY = 896 + (98 - lines.length * 30) / 2;
+    lines.forEach((line, lineIndex) => context.fillText(line, skillX + 135, skillTextY + lineIndex * 30));
   });
 
-  context.fillStyle = 'rgba(255,255,255,0.12)';
-  drawRoundedRect(context, 150, 1068, 780, 128, 30);
-  context.fill();
-  context.fillStyle = '#ffffff';
-  context.font = '400 28px "Geologica", sans-serif';
-  drawCenteredText(context, 'Я прошёл тест «На какого предпринимателя ты похож»', 540, 1096, 670, 38);
-
   context.fillStyle = '#d2ff5f';
-  context.font = '700 27px "Anonymous Pro", monospace';
-  context.fillText('НОВАТОРИЯ18.РФ', 540, 1242);
+  drawRoundedRect(context, 96, 1030, 888, 160, 30);
+  context.fill();
+  context.textAlign = 'left';
+  context.fillStyle = '#004f52';
+  context.font = '700 22px "Anonymous Pro", monospace';
+  context.fillText('ТВОЙ СЛЕДУЮЩИЙ ЭКСПЕРИМЕНТ', 126, 1056);
+  context.font = '400 22px "Geologica", sans-serif';
+  drawWrappedText(context, person.growthIdea, 126, 1093, 828, 30);
+
+  context.textAlign = 'center';
+  context.fillStyle = '#d2ff5f';
+  context.font = '700 24px "Anonymous Pro", monospace';
+  context.fillText('НОВАТОРИЯ18.РФ  •  ТЕСТ ДЛЯ ДЕТЕЙ И ПОДРОСТКОВ', 540, 1238);
 
   const blob = await new Promise<Blob>((resolve, reject) => {
     canvas.toBlob((value) => (value ? resolve(value) : reject(new Error('Не удалось сохранить карточку'))), 'image/png');
