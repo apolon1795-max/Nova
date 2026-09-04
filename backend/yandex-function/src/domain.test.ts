@@ -7,8 +7,23 @@ test('validates and normalizes a legitimate quiz lead', () => {
   const input = makeValidLead();
   const result = validateLeadSubmission(input);
   assert.equal(result.leadId, input.leadId);
+  assert.equal(result.contact.motherName, 'Анна');
   assert.equal(result.contact.parentPhone, '+7 999 111-22-33');
   assert.equal(result.result.entrepreneurId, 'gates');
+});
+
+test('rejects an invalid mother name in the current schema', () => {
+  const input = makeValidLead();
+  input.contact.motherName = '<script>';
+  assert.throws(() => validateLeadSubmission(input), /имя мамы/);
+});
+
+test('keeps accepting legacy submissions during the frontend rollout', () => {
+  const input = makeValidLead() as unknown as { schemaVersion: 1; contact: { parentPhone: string; motherName?: string } };
+  input.schemaVersion = 1;
+  delete input.contact.motherName;
+  const result = validateLeadSubmission(input);
+  assert.equal(result.contact.motherName, '');
 });
 
 test('rejects a result whose public name does not match its id', () => {

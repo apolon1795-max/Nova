@@ -4,6 +4,7 @@ const DEFAULT_PRIVACY_URL = 'https://новатория18.рф/page38711582.html
 const DEFAULT_LEAD_ENDPOINT = '/api/lead';
 const REQUEST_TIMEOUT_MS = 25_000;
 const PHONE_DIGITS_PATTERN = /^\d{10,11}$/;
+const MOTHER_NAME_PATTERN = /^[\p{L}\p{M}](?:[\p{L}\p{M}'’ -]{0,48}[\p{L}\p{M}])$/u;
 
 export type NotificationDelivery = 'sent' | 'skipped' | 'failed';
 
@@ -24,11 +25,12 @@ export interface LeadFormMeta {
 }
 
 export interface LeadSubmission {
-  schemaVersion: 1;
+  schemaVersion: 2;
   leadId: string;
   source: 'novatoria-entrepreneur-quiz';
   createdAt: string;
   contact: {
+    motherName: string;
     parentPhone: string;
   };
   result: {
@@ -94,6 +96,11 @@ export function isPhoneValid(phone: string): boolean {
   return digits.length === 10 || digits.startsWith('7') || digits.startsWith('8');
 }
 
+export function isMotherNameValid(name: string): boolean {
+  const cleaned = name.trim().replace(/\s+/g, ' ');
+  return MOTHER_NAME_PATTERN.test(cleaned);
+}
+
 function readUtm(): Record<string, string> {
   const params = new URLSearchParams(window.location.search);
   const result: Record<string, string> = {};
@@ -116,11 +123,16 @@ function cleanScores(scores: Record<string, number>): Partial<Record<Entrepreneu
 export function buildLeadSubmission(
   person: Entrepreneur,
   scores: Record<string, number>,
+  motherName: string,
   parentPhone: string,
   meta: LeadFormMeta,
 ): LeadSubmission {
+  const cleanedMotherName = motherName.trim().replace(/\s+/g, ' ');
+  if (!isMotherNameValid(cleanedMotherName)) {
+    throw new LeadSubmissionError('rejected', 'Напиши имя мамы буквами');
+  }
   if (!isPhoneValid(parentPhone)) {
-    throw new LeadSubmissionError('rejected', 'Проверь номер телефона мамы или папы');
+    throw new LeadSubmissionError('rejected', 'Проверь номер телефона мамы');
   }
   if (!meta.parentPermissionConfirmed) {
     throw new LeadSubmissionError('rejected', 'Подтверди, что взрослый разрешил указать номер');
@@ -128,11 +140,12 @@ export function buildLeadSubmission(
 
   const submittedAt = new Date().toISOString();
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     leadId: meta.leadId,
     source: 'novatoria-entrepreneur-quiz',
     createdAt: submittedAt,
     contact: {
+      motherName: cleanedMotherName,
       parentPhone: parentPhone.trim(),
     },
     result: {
@@ -233,7 +246,7 @@ export function getLeadErrorMessage(error: unknown): string {
 export function buildParentShareText(person: Entrepreneur): string {
   const skills = person.skills.map((skill) => skill.name.toLowerCase()).join(', ');
   return [
-    'Привет! Я прошёл тест Новатории «На какого предпринимателя ты похож».',
+    'Привет! Это мой результат теста Новатории «На какого предпринимателя ты похож».',
     '',
     `Мой результат — ${person.name}: ${person.archetype.toLowerCase()}.`,
     person.description,

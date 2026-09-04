@@ -24,16 +24,21 @@ function escapeHtml(value: string): string {
 export function buildNotificationText(payload: LeadSubmission, includeContacts: boolean): string {
   const lines = [
     '<b>Новая заявка · тест Новатории</b>',
-    `Результат: <b>${escapeHtml(payload.result.entrepreneurName)}</b>`,
-    `Тип: ${escapeHtml(payload.result.archetype)}`,
-    `Сильные стороны: ${escapeHtml(payload.result.skills.join(', '))}`,
   ];
 
   if (includeContacts) {
-    lines.push(`Телефон родителя: <code>${escapeHtml(payload.contact.parentPhone)}</code>`);
+    if (payload.contact.motherName) {
+      lines.push(`Имя мамы: <b>${escapeHtml(payload.contact.motherName)}</b>`);
+    }
+    lines.push(`Телефон мамы: <code>${escapeHtml(payload.contact.parentPhone)}</code>`);
   } else {
-    lines.push('Телефон сохранён в защищённом реестре YDB.');
+    lines.push('Имя мамы и телефон сохранены в защищённом реестре YDB.');
   }
+  lines.push(
+    `Результат: <b>${escapeHtml(payload.result.entrepreneurName)}</b>`,
+    `Тип: ${escapeHtml(payload.result.archetype)}`,
+    `Сильные стороны: ${escapeHtml(payload.result.skills.join(', '))}`,
+  );
   lines.push(`ID: <code>${escapeHtml(payload.leadId)}</code>`);
   return lines.join('\n');
 }

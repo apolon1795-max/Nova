@@ -2,6 +2,7 @@ import { EntrepreneurId, LeadSubmission } from './types.js';
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const PHONE_PATTERN = /^\d{10,11}$/;
+const MOTHER_NAME_PATTERN = /^[\p{L}\p{M}](?:[\p{L}\p{M}'’ -]{0,48}[\p{L}\p{M}])$/u;
 const MIN_FORM_DURATION_MS = 1_500;
 const MAX_FORM_DURATION_MS = 24 * 60 * 60 * 1_000;
 const ENTREPRENEUR_IDS = new Set<EntrepreneurId>([
@@ -112,7 +113,10 @@ function readScoreSummary(value: unknown): Partial<Record<EntrepreneurId, number
 
 export function validateLeadSubmission(raw: unknown): LeadSubmission {
   const root = requireRecord(raw, 'body');
-  if (root.schemaVersion !== 1) throw new RequestValidationError('Неподдерживаемая версия формы');
+  if (root.schemaVersion !== 1 && root.schemaVersion !== 2) {
+    throw new RequestValidationError('Неподдерживаемая версия формы');
+  }
+  const schemaVersion = root.schemaVersion;
   if (root.source !== 'novatoria-entrepreneur-quiz') throw new RequestValidationError('Некорректный источник заявки');
 
   const leadId = cleanRequiredString(root.leadId, 'leadId', 64);
@@ -126,6 +130,12 @@ export function validateLeadSubmission(raw: unknown): LeadSubmission {
   }
 
   const contact = requireRecord(root.contact, 'contact');
+  const motherName = schemaVersion === 2
+    ? cleanRequiredString(contact.motherName, 'contact.motherName', 50)
+    : cleanOptionalString(contact.motherName, 'contact.motherName', 50);
+  if (motherName && !MOTHER_NAME_PATTERN.test(motherName)) {
+    throw new RequestValidationError('Проверьте имя мамы');
+  }
   const parentPhone = cleanRequiredString(contact.parentPhone, 'contact.parentPhone', 24);
   if (!PHONE_PATTERN.test(parentPhone.replace(/\D/g, ''))) {
     throw new RequestValidationError('Проверьте номер телефона');
@@ -160,11 +170,11 @@ export function validateLeadSubmission(raw: unknown): LeadSubmission {
   }
 
   return {
-    schemaVersion: 1,
+    schemaVersion,
     leadId,
     source: 'novatoria-entrepreneur-quiz',
     createdAt,
-    contact: { parentPhone },
+    contact: { motherName, parentPhone },
     result: {
       entrepreneurId,
       entrepreneurName,

@@ -34,6 +34,7 @@ import {
   Target,
   TrendingUp,
   Users,
+  UserRound,
   Zap,
   type LucideIcon,
 } from 'lucide-react';
@@ -45,6 +46,7 @@ import {
   downloadParentShareCard,
   getLeadErrorMessage,
   getPrivacyUrl,
+  isMotherNameValid,
   isPhoneValid,
   submitLead,
 } from './lib/leadCapture';
@@ -240,6 +242,7 @@ function Test({ onComplete }: { onComplete: (scores: Record<string, number>) => 
 }
 
 function ParentShareForm({ person, scores }: { person: Entrepreneur; scores: Record<string, number> }) {
+  const [motherName, setMotherName] = useState('');
   const [phone, setPhone] = useState('');
   const [parentPermissionConfirmed, setParentPermissionConfirmed] = useState(false);
   const [website, setWebsite] = useState('');
@@ -250,19 +253,20 @@ function ParentShareForm({ person, scores }: { person: Entrepreneur; scores: Rec
   const [shareError, setShareError] = useState('');
   const formStartedAt = useRef(new Date().toISOString());
   const leadId = useRef(createLeadId());
-  const canSubmit = isPhoneValid(phone) && parentPermissionConfirmed && status !== 'sending';
+  const normalizedMotherName = motherName.trim().replace(/\s+/g, ' ');
+  const canSubmit = isMotherNameValid(motherName) && isPhoneValid(phone) && parentPermissionConfirmed && status !== 'sending';
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError('');
     if (!canSubmit) {
-      setError('Проверь номер и подтверди, что взрослый разрешил его указать.');
+      setError('Проверь имя мамы, номер и подтверди, что взрослый разрешил указать контакт.');
       return;
     }
 
     setStatus('sending');
     try {
-      const payload = buildLeadSubmission(person, scores, phone, {
+      const payload = buildLeadSubmission(person, scores, normalizedMotherName, phone, {
         parentPermissionConfirmed,
         formStartedAt: formStartedAt.current,
         website,
@@ -318,7 +322,7 @@ function ParentShareForm({ person, scores }: { person: Entrepreneur; scores: Rec
         <div className="share-success-icon"><CheckCircle2 size={32} aria-hidden="true" /></div>
         <p className="section-kicker">Заявка отправлена</p>
         <h2 id="share-success-title">Новатория получила твой результат</h2>
-        <p>Команда свяжется с мамой или папой и пригласит тебя на бесплатное пробное занятие. А пока покажи им основную карточку «Твой результат» выше.</p>
+        <p>Команда свяжется с мамой и пригласит тебя на бесплатное пробное занятие. А пока покажи ей основную карточку «Твой результат» выше.</p>
 
         <div className="share-actions">
           <button type="button" className="primary-button" onClick={copyResult}>
@@ -346,14 +350,35 @@ function ParentShareForm({ person, scores }: { person: Entrepreneur; scores: Rec
           <span className="trial-reason__icon"><Rocket size={24} aria-hidden="true" /></span>
           <div>
             <strong>Зачем нужен номер?</strong>
-            <p>Команда Новатории свяжется с мамой или папой, расскажет о занятии и поможет выбрать удобное время.</p>
+            <p>Команда Новатории свяжется с мамой, расскажет о занятии и поможет выбрать удобное время.</p>
           </div>
         </div>
       </div>
 
       <form onSubmit={handleSubmit} noValidate>
         <div className="field-group">
-          <label htmlFor="parent-phone">Телефон мамы или папы</label>
+          <label htmlFor="mother-name">Как зовут маму?</label>
+          <div className="phone-field text-field">
+            <span aria-hidden="true"><UserRound size={20} /></span>
+            <input
+              id="mother-name"
+              type="text"
+              autoComplete="given-name"
+              autoCapitalize="words"
+              maxLength={50}
+              value={motherName}
+              onChange={(event) => setMotherName(event.target.value)}
+              placeholder="Например, Анна"
+              aria-describedby="name-help"
+              aria-invalid={Boolean(error) && !isMotherNameValid(motherName)}
+              required
+            />
+          </div>
+          <p id="name-help" className="field-help">Имя поможет команде Новатории обратиться к маме лично.</p>
+        </div>
+
+        <div className="field-group">
+          <label htmlFor="parent-phone">Телефон мамы</label>
           <div className="phone-field">
             <span aria-hidden="true"><Phone size={20} /></span>
             <input
@@ -389,7 +414,7 @@ function ParentShareForm({ person, scores }: { person: Entrepreneur; scores: Rec
             <span aria-hidden="true"><Check size={14} /></span>
           </span>
           <span>
-            Мама или папа разрешили мне указать этот номер, чтобы Новатория могла связаться с ними по результату теста и пригласить меня на бесплатное пробное занятие.{' '}
+            Мама разрешила мне указать её имя и номер, чтобы Новатория могла связаться с ней по результату теста и пригласить меня на бесплатное пробное занятие.{' '}
             <a href={getPrivacyUrl()} target="_blank" rel="noreferrer noopener">Политика обработки данных</a>
           </span>
         </label>

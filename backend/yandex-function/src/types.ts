@@ -11,11 +11,12 @@ export type EntrepreneurId =
   | 'zuckerberg';
 
 export interface LeadSubmission {
-  schemaVersion: 1;
+  schemaVersion: 1 | 2;
   leadId: string;
   source: 'novatoria-entrepreneur-quiz';
   createdAt: string;
   contact: {
+    motherName: string;
     parentPhone: string;
   };
   result: {

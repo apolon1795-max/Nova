@@ -4,11 +4,11 @@ import { LeadSubmission } from './types.js';
 export function makeValidLead(overrides: Partial<LeadSubmission> = {}): LeadSubmission {
   const now = Date.now();
   const lead: LeadSubmission = {
-    schemaVersion: 1,
+    schemaVersion: 2,
     leadId: randomUUID(),
     source: 'novatoria-entrepreneur-quiz',
     createdAt: new Date(now).toISOString(),
-    contact: { parentPhone: '+7 999 111-22-33' },
+    contact: { motherName: 'Анна', parentPhone: '+7 999 111-22-33' },
     result: {
       entrepreneurId: 'gates',
       entrepreneurName: 'Билл Гейтс',
