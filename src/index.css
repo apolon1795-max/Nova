@@ -914,12 +914,48 @@ button,
   padding: 42px;
 }
 
-.share-card__intro > p:last-child,
+.share-card__lead,
 .share-card--success > p {
   margin: 18px 0 0;
   color: var(--ink-soft);
   font-size: 16px;
   line-height: 1.58;
+}
+
+.trial-reason {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr);
+  gap: 14px;
+  align-items: start;
+  margin-top: 22px;
+  padding: 17px;
+  border: 1px solid rgba(0, 79, 82, 0.22);
+  border-radius: 18px;
+  background: var(--lime);
+  color: var(--teal-dark);
+}
+
+.trial-reason__icon {
+  display: grid;
+  width: 46px;
+  height: 46px;
+  place-items: center;
+  border: 2px solid var(--teal-dark);
+  border-radius: 14px;
+  background: white;
+  box-shadow: 4px 5px 0 var(--teal-dark);
+}
+
+.trial-reason strong {
+  display: block;
+  font-family: "Anonymous Pro", monospace;
+  font-size: 16px;
+}
+
+.trial-reason p {
+  margin: 7px 0 0;
+  font-size: 13px;
+  line-height: 1.5;
 }
 
 .share-card form {

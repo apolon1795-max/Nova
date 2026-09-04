@@ -316,9 +316,9 @@ function ParentShareForm({ person, scores }: { person: Entrepreneur; scores: Rec
     return (
       <section className="share-card share-card--success" aria-labelledby="share-success-title">
         <div className="share-success-icon"><CheckCircle2 size={32} aria-hidden="true" /></div>
-        <p className="section-kicker">Результат сохранён</p>
-        <h2 id="share-success-title">Покажи свой результат маме или папе</h2>
-        <p>Сделай скрин основной карточки «Твой результат» выше или отправь полный текст с описанием и сильными сторонами.</p>
+        <p className="section-kicker">Заявка отправлена</p>
+        <h2 id="share-success-title">Новатория получила твой результат</h2>
+        <p>Команда свяжется с мамой или папой и пригласит тебя на бесплатное пробное занятие. А пока покажи им основную карточку «Твой результат» выше.</p>
 
         <div className="share-actions">
           <button type="button" className="primary-button" onClick={copyResult}>
@@ -341,7 +341,14 @@ function ParentShareForm({ person, scores }: { person: Entrepreneur; scores: Rec
       <div className="share-card__intro">
         <p className="section-kicker">Последний шаг</p>
         <h2 id="share-title">Поделись результатами теста с родителями</h2>
-        <p>Введи телефон мамы или папы. Мы сохраним твой результат, а ты сможешь скопировать его или скачать как изображение.</p>
+        <p className="share-card__lead">Хочешь проверить свои сильные стороны в деле? Оставь контакт взрослого и получи приглашение на бесплатное пробное занятие.</p>
+        <div className="trial-reason">
+          <span className="trial-reason__icon"><Rocket size={24} aria-hidden="true" /></span>
+          <div>
+            <strong>Зачем нужен номер?</strong>
+            <p>Команда Новатории свяжется с мамой или папой, расскажет о занятии и поможет выбрать удобное время.</p>
+          </div>
+        </div>
       </div>
 
       <form onSubmit={handleSubmit} noValidate>
@@ -363,7 +370,7 @@ function ParentShareForm({ person, scores }: { person: Entrepreneur; scores: Rec
               required
             />
           </div>
-          <p id="phone-help" className="field-help">Новатория получит контакт вместе с результатом теста.</p>
+          <p id="phone-help" className="field-help">Новатория получит контакт вместе с результатом теста и заявкой на бесплатное занятие.</p>
         </div>
 
         <div className="honeypot" aria-hidden="true">
@@ -382,7 +389,7 @@ function ParentShareForm({ person, scores }: { person: Entrepreneur; scores: Rec
             <span aria-hidden="true"><Check size={14} /></span>
           </span>
           <span>
-            Мама или папа разрешили мне указать этот номер, чтобы получить результат теста и информацию о пробном занятии.{' '}
+            Мама или папа разрешили мне указать этот номер, чтобы Новатория могла связаться с ними по результату теста и пригласить меня на бесплатное пробное занятие.{' '}
             <a href={getPrivacyUrl()} target="_blank" rel="noreferrer noopener">Политика обработки данных</a>
           </span>
         </label>
@@ -390,8 +397,8 @@ function ParentShareForm({ person, scores }: { person: Entrepreneur; scores: Rec
         {error ? <div className="form-error" role="alert">{error}</div> : null}
 
         <button type="submit" className="primary-button share-submit" disabled={!canSubmit}>
-          <ShieldCheck size={21} aria-hidden="true" />
-          {status === 'sending' ? 'Сохраняем результат…' : 'Сохранить и поделиться'}
+          <Rocket size={21} aria-hidden="true" />
+          {status === 'sending' ? 'Отправляем заявку…' : 'Получить приглашение'}
         </button>
         <p className="security-note"><ShieldCheck size={16} aria-hidden="true" /> Контакт используется только для связи по результату теста и пробному занятию.</p>
       </form>
